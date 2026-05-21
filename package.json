@@ -1,0 +1,61 @@
+{
+  "name": "doc-report-manager",
+  "version": "2.0.0",
+  "description": "文档报表管理系统",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win portable",
+    "build:mac": "electron-builder --mac dmg zip",
+    "build": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.office.docreport",
+    "productName": "文档报表管理系统",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.png",
+      "sign": null,
+      "signAndEditExecutable": false
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "assets/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "dmg": {
+      "title": "文档报表管理系统",
+      "artifactName": "文档报表管理系统-${version}-mac.${ext}"
+    },
+    "portable": {
+      "artifactName": "文档报表管理系统.exe"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "assets/**",
+      "build/**",
+      "node_modules/**"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.7.2"
+  }
+}

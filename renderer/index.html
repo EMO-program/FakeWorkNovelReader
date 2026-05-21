@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文档报表管理系统</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app" class="excel-container">
+
+  <div id="toolbar" class="toolbar">
+    <div class="toolbar-group">
+      <button class="tb-btn" data-action="open" title="打开文档">📂 打开</button>
+      <button class="tb-btn" data-action="save" title="保存">💾 保存</button>
+      <button class="tb-btn" data-action="print" title="打印预览">🖨 打印</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="tb-btn" data-action="undo" title="撤消">↩ 撤消</button>
+      <button class="tb-btn" data-action="redo" title="恢复">↪ 恢复</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="tb-btn" data-action="find" title="查找">🔍 查找</button>
+      <button class="tb-btn" data-action="goto" title="定位单元格">📍 定位</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="tb-btn" data-action="prev-page" title="上翻页">◀ 上翻</button>
+      <span id="page-indicator" class="page-indicator">第1页</span>
+      <button class="tb-btn" data-action="next-page" title="下翻页">下翻 ▶</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button id="btn-autoplay" class="tb-btn" title="演示模式">▶ 演示模式</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group autoplay-speed-group" id="autoplay-speed-group" style="display:none;">
+      <label class="speed-label">速率:</label>
+      <input type="range" id="autoplay-speed-slider" min="1" max="30" value="5" title="翻页间隔(秒)">
+      <span id="autoplay-speed-display" class="speed-display">5s</span>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <div class="toolbar-group toolbar-right">
+      <span class="toolbar-title">文档报表管理系统 V2.0</span>
+    </div>
+  </div>
+
+  <div class="formula-bar">
+    <span class="cell-ref" id="cell-ref">A1</span>
+    <input type="text" class="formula-input" id="formula-input" readonly
+           value="报表数据 — 综合业务部文档" placeholder="当前文档位置">
+  </div>
+
+  <div class="main-area">
+    <div id="left-panel" class="left-panel">
+      <div class="panel-section">
+        <div class="panel-header">项目文档列表</div>
+        <div id="file-list" class="file-list">
+          <div class="file-item-empty">暂无文档，请打开文件</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-header">标记列表</div>
+        <div id="bookmark-list" class="bookmark-list">
+          <div class="bookmark-empty">暂无标记</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="content-area" class="content-area">
+      <div id="disguise-header" class="disguise-header">
+        <div class="report-info">
+          <span>报表编号：RPT-2024-0001</span>
+          <span>编制单位：综合业务部</span>
+          <span>编制日期：2024-01-15</span>
+          <span>机密等级：内部</span>
+        </div>
+      </div>
+
+      <div class="col-headers" id="col-headers">
+        <span class="col-header">A</span><span class="col-header">B</span>
+        <span class="col-header">C</span><span class="col-header">D</span>
+        <span class="col-header">E</span><span class="col-header">F</span>
+      </div>
+
+      <div id="reading-container" class="reading-container">
+        <div id="row-numbers" class="row-numbers"></div>
+        <div id="text-display" class="text-display">
+          <div class="placeholder-content">
+            <h2 style="color:#666; text-align:center; margin-top:100px;">
+              📄 文档报表管理系统
+            </h2>
+            <p style="text-align:center; color:#999; margin-top:20px;">
+              请通过 "文件→打开文档" 或工具栏 "打开" 按钮选择要编辑的文档<br>
+              支持标准 TXT 格式文档文件
+            </p>
+            <p style="text-align:center; color:#ccc; margin-top:40px; font-size:12px;">
+              系统已就绪，等待用户操作...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="boss-key-content" class="boss-key-content" style="display:none;">
+        <div class="fake-grid-content">
+          <div class="report-info-boss" style="padding:8px 16px; background:#fafafa; border-bottom:1px solid #d0d0d0; font-size:12px; color:#999; display:flex; gap:32px;">
+            <span>报表编号：RPT-2024-0001</span>
+            <span>编制单位：综合业务部</span>
+            <span>编制日期：2024-01-15</span>
+            <span>机密等级：内部</span>
+          </div>
+          <div style="display:flex; background:#f5f5f5; border-bottom:1px solid #d0d0d0; height:22px;">
+            <span class="col-header" style="width:40px;border-right:1px solid #d0d0d0;"></span>
+            <span class="col-header">A</span><span class="col-header">B</span>
+            <span class="col-header">C</span><span class="col-header">D</span>
+            <span class="col-header">E</span><span class="col-header">F</span>
+          </div>
+          <div style="display:flex; flex:1; overflow:auto;">
+            <div style="width:40px;background:#f5f5f5;border-right:1px solid #d0d0d0; flex-shrink:0;" id="boss-row-numbers"></div>
+            <div style="flex:1; overflow:auto;">
+              <table id="boss-fake-table" style="border-collapse:collapse; width:100%; font-size:12px;">
+                <tbody id="boss-fake-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 鱼模式滚动条（内容区内） -->
+      <div id="fish-ticker" class="fish-ticker" style="display:none;">
+        <div class="fish-ticker-header">
+          <span class="fish-ticker-title">📄 数据校验日志</span>
+          <div class="fish-ticker-controls">
+            <label class="fish-speed-label">滚动速率:</label>
+            <input type="range" id="fish-speed-slider" min="5" max="100" value="30" title="字符/秒">
+            <button class="fish-btn" id="btn-fish-pause">⏸ 暂停</button>
+          </div>
+        </div>
+        <div id="fish-ticker-content" class="fish-ticker-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-bar">
+    <div id="sheet-tabs" class="sheet-tabs">
+      <span class="sheet-tab active" data-index="-1">Sheet1</span>
+    </div>
+    <button class="sheet-add-btn" title="定位到章节">≡</button>
+    <div id="chapter-list-popup" class="chapter-list-popup" style="display:none;"></div>
+  </div>
+
+  <div class="status-bar">
+    <span class="status-item" id="status-state">就绪</span>
+    <span class="status-sep">│</span>
+    <span class="status-item" id="status-autoplay" style="display:none;">🔴 演示模式</span>
+    <span class="status-sep" id="status-sep-autoplay" style="display:none;">│</span>
+    <span class="status-item" id="status-page">页码: 1/1</span>
+    <span class="status-sep">│</span>
+    <span class="status-item" id="status-chars">字数: 0</span>
+    <span class="status-sep">│</span>
+    <span class="status-item" id="status-lines">行: 1, 列: 1</span>
+    <span class="status-spacer"></span>
+    <span class="status-item" id="status-mode" style="display:none; color:#c62828; font-weight:bold;">🔒 保护模式</span>
+    <span class="status-sep" id="status-sep-mode" style="display:none;">│</span>
+    <span class="status-item">CAPS</span>
+  </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <span>选项 — 文档报表管理系统</span>
+      <button class="modal-close" data-action="close-settings">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-group">
+        <h3>显示设置</h3>
+        <div class="setting-row">
+          <label>字体大小：</label>
+          <input type="number" id="set-font-size" min="12" max="32" value="16">
+        </div>
+        <div class="setting-row">
+          <label>行高倍率：</label>
+          <input type="number" id="set-line-height" min="1.0" max="3.0" step="0.1" value="1.8">
+        </div>
+        <div class="setting-row">
+          <label>页宽(字)：</label>
+          <input type="number" id="set-page-width" min="20" max="200" value="80">
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>演示模式（自动翻页）</h3>
+        <div class="setting-row">
+          <label>翻页间隔(秒)：</label>
+          <input type="range" id="set-auto-speed" min="1" max="30" value="5" style="flex:1;max-width:200px;">
+          <span id="set-auto-speed-val">5秒</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>数据校验日志（滚动速率）</h3>
+        <div class="setting-row">
+          <label>滚动速度：</label>
+          <input type="range" id="set-fish-speed" min="5" max="100" value="30" style="flex:1;max-width:200px;">
+          <span id="set-fish-speed-val">30字符/秒</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <h3>伪装级别</h3>
+        <div class="setting-row">
+          <label>伪装程度：</label>
+          <select id="set-disguise-level">
+            <option value="light">轻度 — 仅标题与工具栏</option>
+            <option value="medium">中等 — 含状态栏伪装</option>
+            <option value="deep" selected>深度 — 完整Excel伪装</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-save-settings">确定</button>
+      <button class="btn btn-secondary" data-action="close-settings">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="help-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-dialog help-dialog">
+    <div class="modal-header">
+      <span>文档报表管理系统 — 操作指南</span>
+      <button class="modal-close" data-action="close-help">✕</button>
+    </div>
+    <div class="modal-body help-body">
+      <div class="help-section">
+        <h3>📖 阅读导航</h3>
+        <table class="help-table">
+          <tr><td class="help-key">→ / PageDown</td><td class="help-desc">下翻页</td></tr>
+          <tr><td class="help-key">← / PageUp</td><td class="help-desc">上翻页</td></tr>
+          <tr><td class="help-key">Ctrl+Home</td><td class="help-desc">跳转到开头</td></tr>
+          <tr><td class="help-key">Ctrl+End</td><td class="help-desc">跳转到末尾</td></tr>
+          <tr><td class="help-key">Ctrl+G</td><td class="help-desc">定位到指定页面</td></tr>
+          <tr><td class="help-key">鼠标滚轮</td><td class="help-desc">到达边界时自动翻页</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h3>📑 章节管理</h3>
+        <table class="help-table">
+          <tr><td class="help-key">底部 Sheet 标签</td><td class="help-desc">点击切换章节</td></tr>
+          <tr><td class="help-key">底部 ≡ 按钮</td><td class="help-desc">显示章节列表弹窗</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h3>🎬 演示模式（自动翻页）</h3>
+        <table class="help-table">
+          <tr><td class="help-key">F5</td><td class="help-desc">启动/停止演示模式</td></tr>
+          <tr><td class="help-key">工具栏 速率 滑块</td><td class="help-desc">调节自动翻页间隔（1~30秒）</td></tr>
+          <tr><td class="help-key">Esc</td><td class="help-desc">停止演示模式</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h3>📌 标记管理（书签）</h3>
+        <table class="help-table">
+          <tr><td class="help-key">Ctrl+D</td><td class="help-desc">添加/标记当前页面</td></tr>
+          <tr><td class="help-key">右键菜单</td><td class="help-desc">点击"标记此行"添加书签</td></tr>
+          <tr><td class="help-key">左侧标记列表</td><td class="help-desc">点击跳转，悬停显示删除按钮</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h3>🛡 保护模式</h3>
+        <table class="help-table">
+          <tr><td class="help-key">Ctrl+`</td><td class="help-desc">一键切换保护模式（老板键）<br>保留界面框架，仅替换内容为报表</td></tr>
+          <tr><td class="help-key">F2</td><td class="help-desc">切换数据校验模式（二级隐秘）<br>顶部显示报表，底部滚动日志</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h3>⚙ 其他操作</h3>
+        <table class="help-table">
+          <tr><td class="help-key">Ctrl+O</td><td class="help-desc">打开文档</td></tr>
+          <tr><td class="help-key">F1</td><td class="help-desc">显示此帮助</td></tr>
+          <tr><td class="help-key">F11</td><td class="help-desc">全屏显示</td></tr>
+          <tr><td class="help-key">工具→选项</td><td class="help-desc">打开设置面板</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-action="close-help">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
