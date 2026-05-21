@@ -2,4 +2,5 @@ node_modules/
 dist/
 dist-final/
 dist-portable/
+dist-portable2/
 *.exe

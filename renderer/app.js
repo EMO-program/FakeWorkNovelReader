@@ -50,7 +50,8 @@ const App = {
     autoPlaySpeed: 5,
     disguiseLevel: 'deep',
     fishScrollSpeed: 30,
-    fishScrollOffset: 0
+    fishScrollOffset: 0,
+    eyeCareMode: false
   },
 
   async init() {
@@ -63,6 +64,7 @@ const App = {
     this.renderBossFakeTable()
     this.initAutoPlaySpeedSlider()
     this.initFishSpeedSlider()
+    this.applyEyeCareMode()
     this.updateStatusBar()
   },
 
@@ -189,6 +191,10 @@ const App = {
 
     document.getElementById('btn-autoplay').addEventListener('click', () => {
       this.toggleAutoPlay()
+    })
+
+    document.getElementById('btn-eyecare').addEventListener('click', () => {
+      this.toggleEyeCareMode()
     })
 
     document.querySelector('.sheet-add-btn').addEventListener('click', () => {
@@ -629,6 +635,26 @@ const App = {
     }
   },
 
+  toggleEyeCareMode() {
+    this.config.eyeCareMode = !this.config.eyeCareMode
+    this.applyEyeCareMode()
+    this.saveConfigToDisk()
+  },
+
+  applyEyeCareMode() {
+    const container = document.getElementById('reading-container')
+    const btn = document.getElementById('btn-eyecare')
+    if (this.config.eyeCareMode) {
+      container.classList.add('eye-care')
+      btn.classList.add('active')
+      btn.textContent = '🌿 护眼 ✓'
+    } else {
+      container.classList.remove('eye-care')
+      btn.classList.remove('active')
+      btn.textContent = '🌿 护眼'
+    }
+  },
+
   toggleAutoPlay() {
     if (this.isAutoPlaying) {
       this.stopAutoPlay()
@@ -674,7 +700,7 @@ const App = {
     const display = document.getElementById('text-display')
     if (!display) return
 
-    const maxScroll = display.scrollHeight - display.clientHeight
+    const maxScroll = Math.floor(display.scrollHeight - display.clientHeight)
     if (maxScroll > 2) {
       this.startAutoScroll(display, maxScroll)
     } else {
@@ -693,8 +719,9 @@ const App = {
         this.autoScrollTimer = null
         return
       }
+      const prevScrollTop = display.scrollTop
       display.scrollTop += step
-      if (display.scrollTop >= maxScroll) {
+      if (display.scrollTop >= maxScroll || display.scrollTop === prevScrollTop) {
         display.scrollTop = maxScroll
         clearInterval(this.autoScrollTimer)
         this.autoScrollTimer = null

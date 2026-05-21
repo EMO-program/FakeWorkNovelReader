@@ -414,6 +414,18 @@ body {
   text-indent: 0;
 }
 
+.eye-care .text-display {
+  background: #cce8cf;
+}
+
+.eye-care .row-numbers {
+  background: #c0dfc3;
+}
+
+.eye-care .reading-line {
+  border-bottom-color: #b8d8bb;
+}
+
 .placeholder-content {
   user-select: none;
 }

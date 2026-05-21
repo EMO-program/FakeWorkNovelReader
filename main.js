@@ -356,7 +356,8 @@ ipcMain.handle('get-config', () => {
     autoPlaySpeed: 5,
     disguiseLevel: 'deep',
     fishScrollSpeed: 30,
-    fishScrollOffset: 0
+    fishScrollOffset: 0,
+    eyeCareMode: false
   })
 })
 
