@@ -40,6 +40,7 @@ const App = {
   fishScrollOffset: 0,
   fishTickerText: null,
   fishTickerFile: null,
+  _positionSaveTimer: null,
   bookmarks: {},
 
   config: {
@@ -66,6 +67,7 @@ const App = {
     this.initFishSpeedSlider()
     this.applyEyeCareMode()
     this.updateStatusBar()
+    await this.restoreLastFile()
   },
 
   async loadConfig() {
@@ -110,6 +112,26 @@ const App = {
     }
   },
 
+  async restoreLastFile() {
+    if (!this.history || !this.history.lastOpened) return
+    const filePath = this.history.lastOpened
+    const fileRecord = this.history.files[filePath]
+    if (!fileRecord) return
+    try {
+      const content = await window.electronAPI.getFileContent(filePath)
+      if (content) {
+        const fileName = filePath.split(/[\\/]/).pop()
+        this.openFileContent({ fileName, filePath, content })
+        if (fileRecord.lastChapter !== undefined) {
+          this.gotoChapterStart(fileRecord.lastChapter)
+          if (fileRecord.lastPage !== undefined) {
+            this.goToPage(Math.min(fileRecord.lastPage, this.totalPages - 1))
+          }
+        }
+      }
+    } catch (_) { }
+  },
+
   bindIPC() {
     window.electronAPI.onFileOpened((data) => {
       this.openFileContent(data)
@@ -122,6 +144,9 @@ const App = {
     })
     window.electronAPI.onFishModeToggle(() => {
       this.toggleFishMode()
+    })
+    window.electronAPI.onMiniModeToggle(() => {
+      this.toggleMiniMode()
     })
     window.electronAPI.onAppClosing(() => {
       this.onAppClosing()
@@ -309,6 +334,12 @@ const App = {
     if (e.key === 'F2') {
       e.preventDefault()
       this.toggleFishMode()
+      return
+    }
+
+    if (e.key === 'F3') {
+      e.preventDefault()
+      this.toggleMiniMode()
       return
     }
 
@@ -503,11 +534,29 @@ const App = {
     this.saveCurrentPosition()
   },
 
+  goToBookmark(chapterIndex, position) {
+    if (chapterIndex < 0 || chapterIndex >= this.chapters.length) return
+    this.currentChapter = chapterIndex
+    this.buildPages(chapterIndex)
+    let targetPage = 0
+    for (let i = 0; i < this.pages.length; i++) {
+      if (this.pages[i].startLine <= position) {
+        targetPage = i
+      } else {
+        break
+      }
+    }
+    this.goToPage(targetPage)
+    this.updateChapterTabs()
+    this.saveCurrentPosition()
+  },
+
   goToPage(pageIndex) {
     if (pageIndex < 0 || pageIndex >= this.totalPages) return
     this.currentPage = pageIndex
     this.renderPage()
     this.updateStatusBar()
+    this.schedulePositionSave()
   },
 
   nextPage() {
@@ -903,6 +952,22 @@ const App = {
     document.getElementById('btn-fish-pause').textContent = this.fishPaused ? '▶ 继续' : '⏸ 暂停'
   },
 
+  toggleMiniMode() {
+    if (this.bossKeyActive) return
+    if (!this.currentFile) return
+
+    let text = ''
+    for (const chapter of this.chapters) {
+      text += '  【' + chapter.title + '】  '
+      text += chapter.lines.join(' ') + '  '
+    }
+
+    window.electronAPI.enterMiniMode({
+      text: text,
+      speed: this.config.fishScrollSpeed
+    })
+  },
+
   addBookmark() {
     if (!this.currentFile || this.pages.length === 0) return
     const page = this.pages[this.currentPage]
@@ -961,7 +1026,8 @@ const App = {
           return
         }
         const chapter = parseInt(item.dataset.chapter)
-        this.goToChapter(chapter)
+        const position = parseInt(item.dataset.position)
+        this.goToBookmark(chapter, position)
       })
     })
   },
@@ -1031,9 +1097,20 @@ const App = {
     }
     history.lastOpened = this.currentFile.filePath
     this.history = history
+    try {
+      await window.electronAPI.saveHistory(history)
+    } catch (_) { }
+  },
+
+  schedulePositionSave() {
+    if (this._positionSaveTimer) clearTimeout(this._positionSaveTimer)
+    this._positionSaveTimer = setTimeout(() => {
+      this.saveCurrentPosition()
+    }, 1000)
   },
 
   onAppClosing() {
+    if (this._positionSaveTimer) clearTimeout(this._positionSaveTimer)
     this.saveCurrentPosition()
     this.stopAutoPlay()
     if (this.autoScrollTimer) clearInterval(this.autoScrollTimer)

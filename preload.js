@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearHistory: () => ipcRenderer.invoke('clear-history'),
   getFileContent: (filePath) => ipcRenderer.invoke('get-file-content', filePath),
   removeFromHistory: (filePath) => ipcRenderer.invoke('remove-from-history', filePath),
+  saveHistory: (history) => ipcRenderer.invoke('save-history', history),
+  enterMiniMode: (data) => ipcRenderer.invoke('enter-mini-mode', data),
 
   onFileOpened: (callback) => {
     ipcRenderer.on('file-opened', (_event, data) => callback(data))
@@ -23,6 +25,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onFishModeToggle: (callback) => {
     ipcRenderer.on('fish-mode-toggle', () => callback())
+  },
+  onMiniModeToggle: (callback) => {
+    ipcRenderer.on('mini-mode-toggle', () => callback())
   },
   onAppClosing: (callback) => {
     ipcRenderer.on('app-closing', () => callback())

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain, globalShortcut } = require('electron')
+const { app, BrowserWindow, Menu, dialog, ipcMain, globalShortcut, screen } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const iconv = require('iconv-lite')
@@ -10,6 +10,8 @@ const BOOKMARKS_PATH = path.join(app.getPath('userData'), 'bookmarks.json')
 const HISTORY_PATH = path.join(app.getPath('userData'), 'history.json')
 
 let mainWindow = null
+let miniWindow = null
+let miniModeData = null
 
 function loadJSON(filePath, fallback = {}) {
   try {
@@ -286,8 +288,15 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'))
 
-  mainWindow.on('close', () => {
-    mainWindow.webContents.send('app-closing')
+  mainWindow.on('close', (e) => {
+    if (!mainWindow._closingReady) {
+      e.preventDefault()
+      mainWindow.webContents.send('app-closing')
+      mainWindow._closingReady = true
+      setTimeout(() => {
+        mainWindow.close()
+      }, 500)
+    }
   })
 
   mainWindow.on('closed', () => {
@@ -304,6 +313,68 @@ function registerGlobalShortcuts() {
   globalShortcut.register('F2', () => {
     mainWindow.webContents.send('fish-mode-toggle')
   })
+
+  globalShortcut.register('F3', () => {
+    if (miniWindow) {
+      exitMiniMode()
+    } else {
+      mainWindow.webContents.send('mini-mode-toggle')
+    }
+  })
+}
+
+function enterMiniMode(data) {
+  miniModeData = data
+  mainWindow.hide()
+
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
+  const barHeight = 40
+  const barWidth = Math.round(screenWidth * 0.6)
+  const barX = Math.round((screenWidth - barWidth) / 2)
+  const barY = screenHeight - barHeight
+
+  miniModeData.width = barWidth
+
+  miniWindow = new BrowserWindow({
+    width: barWidth,
+    height: barHeight,
+    x: barX,
+    y: barY,
+    frame: false,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    transparent: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+
+  miniWindow.loadFile(path.join(__dirname, 'renderer', 'mini.html'))
+  miniWindow.once('ready-to-show', () => {
+    miniWindow.show()
+  })
+  miniWindow.on('closed', () => {
+    miniWindow = null
+    miniModeData = null
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.show()
+    }
+  })
+}
+
+function exitMiniMode() {
+  if (miniWindow) {
+    miniWindow.close()
+    miniWindow = null
+    miniModeData = null
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show()
+  }
 }
 
 app.whenReady().then(() => {
@@ -421,4 +492,30 @@ ipcMain.handle('remove-from-history', (_event, filePath) => {
   }
   saveJSON(HISTORY_PATH, history)
   return history
+})
+
+ipcMain.handle('save-history', (_event, history) => {
+  saveJSON(HISTORY_PATH, history)
+  return true
+})
+
+ipcMain.handle('enter-mini-mode', (_event, data) => {
+  enterMiniMode(data)
+  return true
+})
+
+ipcMain.handle('get-mini-data', () => {
+  return miniModeData
+})
+
+ipcMain.on('exit-mini-mode', () => {
+  exitMiniMode()
+})
+
+ipcMain.on('resize-mini-window', (_event, widthPx) => {
+  if (!miniWindow || miniWindow.isDestroyed()) return
+  const [currentX, currentY] = miniWindow.getPosition()
+  const currentWidth = miniWindow.getSize()[0]
+  const newX = currentX + Math.round((currentWidth - widthPx) / 2)
+  miniWindow.setBounds({ x: newX, y: currentY, width: widthPx })
 })

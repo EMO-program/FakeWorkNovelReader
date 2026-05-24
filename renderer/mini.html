@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Mini</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  overflow: hidden;
+  user-select: none;
+  background: #2d2d2d;
+  font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+}
+.mini-bar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  width: 100vw;
+  overflow: hidden;
+  -webkit-app-region: drag;
+}
+.mini-ticker-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 12px;
+  line-height: 40px;
+  font-size: 14px;
+  color: #d4d4d4;
+  white-space: nowrap;
+  font-family: 'SimSun', '宋体', serif;
+}
+.mini-ticker-content .ticker-text {
+  display: inline-block;
+  white-space: nowrap;
+  padding-right: 40px;
+}
+.mini-ticker-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+.mini-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #555;
+  background: #3d3d3d;
+  color: #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.mini-btn:hover {
+  background: #4d4d4d;
+  border-color: #777;
+  color: #fff;
+}
+.mini-restore-btn {
+  background: #217346;
+  border-color: #217346;
+  color: #fff;
+  font-size: 16px;
+}
+.mini-restore-btn:hover {
+  background: #1b5e3a;
+}
+.mini-slider-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.mini-slider-label {
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
+}
+.mini-slider {
+  width: 50px;
+  height: 14px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.mini-width-input {
+  width: 42px;
+  height: 24px;
+  background: #3d3d3d;
+  border: 1px solid #555;
+  border-radius: 3px;
+  color: #d4d4d4;
+  font-size: 12px;
+  text-align: center;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+.mini-width-input:focus {
+  border-color: #217346;
+}
+.mini-sep {
+  width: 1px;
+  height: 20px;
+  background: #555;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+<div class="mini-bar">
+  <div class="mini-ticker-content" id="mini-ticker-content"></div>
+  <div class="mini-ticker-controls">
+    <button class="mini-btn" id="btn-mini-pause" title="暂停/继续">⏸</button>
+    <div class="mini-sep"></div>
+    <div class="mini-slider-group">
+      <span class="mini-slider-label">速</span>
+      <input type="range" class="mini-slider" id="mini-speed-slider" min="5" max="100" value="30" title="滚动速度">
+    </div>
+    <div class="mini-sep"></div>
+    <div class="mini-slider-group">
+      <span class="mini-slider-label">宽</span>
+      <input type="number" class="mini-width-input" id="mini-width-input" min="200" max="3840" value="1152" step="50" title="横条宽度(px)">
+    </div>
+    <div class="mini-sep"></div>
+    <button class="mini-btn mini-restore-btn" id="btn-mini-restore" title="还原全应用 (F3)">⛶</button>
+  </div>
+</div>
+<script src="mini.js"></script>
+</body>
+</html>
